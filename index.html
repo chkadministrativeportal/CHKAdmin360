@@ -193,9 +193,10 @@
       animation-play-state: paused;
     }
     @keyframes chk-float {
-      0%,100% { transform: translateY(0)    rotate(0deg)    scale(1);    }
-      33%      { transform: translateY(-8px) rotate(-1.5deg) scale(1.02); }
-      66%      { transform: translateY(-5px) rotate(1.5deg)  scale(1.015); }
+      0%,100% { transform: translateY(0)    rotate3d(1,.5,0,  0deg) scale(1);    }
+      25%      { transform: translateY(-6px) rotate3d(1,.5,0, -2deg) scale(1.02); }
+      50%      { transform: translateY(-10px)rotate3d(1,.5,0,  0deg) scale(1.03); }
+      75%      { transform: translateY(-5px) rotate3d(1,.5,0,  2deg) scale(1.02); }
     }
 
     #chk-wave-emoji {
@@ -216,8 +217,8 @@
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; flex-shrink: 0; position: relative;
       box-shadow:
-              0 0 0 3px rgba(255,255,255,.30),
-        0 0 0 6px rgba(255,255,255,.15),
+        0 0 0 3px rgba(139,0,0,.5),
+        0 0 0 6px rgba(26,107,26,.3),
         0 8px 24px rgba(139,0,0,.6),
         inset 0 1px 1px rgba(255,255,255,.12);
       transition: transform .18s, box-shadow .18s;
@@ -225,8 +226,8 @@
     #chk-bot-btn:hover {
       transform: scale(1.1) translateY(-2px);
       box-shadow:
-              0 0 0 4px rgba(255,255,255,.40),
-        0 0 0 8px rgba(255,255,255,.20),
+        0 0 0 4px rgba(139,0,0,.7),
+        0 0 0 8px rgba(26,107,26,.4),
         0 14px 32px rgba(139,0,0,.8),
         inset 0 1px 1px rgba(255,255,255,.2);
     }
@@ -383,7 +384,8 @@
       box-shadow: 0 2px 12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04);
       align-self: flex-start;
     }
-    .chk-msg.bot.ai-powered { border-left-color: #0d4a0d; }
+    .chk-msg.ai-powered   { border-left-color: #ff9800; }
+    .chk-msg.sheet-match  { border-left-color: #4caf50; }
     .chk-msg.user {
       background: linear-gradient(135deg,#6b0000 0%,#9b1818 100%);
       color: #fff; border-bottom-right-radius: 4px; align-self: flex-end;
@@ -394,13 +396,15 @@
     .chk-msg.user a       { color: #ffe680; }
     .chk-msg.user a:hover { color: #fff5aa; }
     .chk-source-tag {
-      display: inline-block; margin-top: 6px;
-      font-size: 9px; color: rgba(255,255,255,.3);
-      letter-spacing: .5px; font-weight: 600; font-family: Montserrat, sans-serif;
+      font-size: 10px; opacity: .55; margin-top: 6px;
+      font-family: Montserrat, sans-serif; letter-spacing: .4px;
+      display: block;
     }
-    .chk-source-tag.sheets { color: rgba(66,163,64,.5); }
-    .chk-source-tag.groq   { color: rgba(255,155,50,.4); }
-    .chk-source-tag.gas    { color: rgba(66,133,244,.45); }
+    .chk-source-tag.sheets { color: rgba(66,163,64,.85); }
+    .chk-source-tag.groq   { color: rgba(255,155,50,.85); }
+    .chk-source-tag.gas    { color: rgba(255,155,50,.85); }
+    .chk-source-tag.claude  { color: rgba(100,180,255,.85); }
+    .chk-source-tag.gemini  { color: #4dabf7; opacity: .85; }
 
     /* Quick-reply chips */
     #chk-chips {
@@ -499,7 +503,7 @@
       <a onclick="navigate('forms')">Forms</a>
       <a onclick="navigate('aira')">A.I.R.A.</a>
       <a onclick="navigate('dashboards')">Dashboards</a>
-      <a onclick="navigate('onboarding')">On Boarding</a>
+      <a onclick="navigate('onboarding')">Onboarding</a>
       <a onclick="navigate('feedback')">Feedback</a>
     </nav>
     <button class="hamburger" id="hamburger" onclick="toggleMobile()" aria-label="Menu">
@@ -514,7 +518,7 @@
     <a onclick="navigate('forms'); closeMobile()">Forms</a>
     <a onclick="navigate('aira'); closeMobile()">A.I.R.A.</a>
     <a onclick="navigate('dashboards'); closeMobile()">Dashboards</a>
-    <a onclick="navigate('onboarding'); closeMobile()">On Boarding</a>
+    <a onclick="navigate('onboarding'); closeMobile()">Onboarding</a>
     <a onclick="navigate('feedback'); closeMobile()">Feedback</a>
   </nav>
 </header>
@@ -996,7 +1000,7 @@ Use this internal dashboard to monitor faculty and staff submissions for the ann
             <strong>CHiKito</strong>
             <span>CHK Admin Assistant</span>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <div id="chk-beta-tag">BETA</div>
+              <div id="chk-beta-tag">✨ BETA · Gemini + Sheets + GROQ</div>
               <div id="chk-ai-status"><div id="chk-ai-dot"></div><span id="chk-ai-label">AI Ready</span></div>
             </div>
           </div>
@@ -1083,6 +1087,68 @@ const CHIP_MAP={
 };
 
 let gasHistory = [];
+let claudeHistory = [];
+
+// ══════════════════════════════════════
+// SHEET_KB — CHK Q&A Knowledge Base
+// ══════════════════════════════════════
+const SHEET_KB=[{q:`Paano mag-reserve ng venue sa CHK?`,a:`Mag-fill out ng Venue Reservation Form sa CHK Admin Office o i-access ang AREA portal sa https://sites.google.com/up.edu.ph/chk360/reserve-a-venue. Kailangan ng advance notice — minimum 5 working days bago ang event. I-confirm sa CHK Admin Office ang availability.`,cat:"Venue"},{q:`Saan makikita ang venue schedule ng CHK?`,a:`Makikita ang pinakabagong venue schedules dito: https://chkadministrativeportal.github.io/venuecalendars/ — Pumili ng venue para makita ang calendar.`,cat:"Venue"},{q:`Magkano ang bayad sa venue reservation?`,a:`Depende sa venue at sa oras ng gamit. May OT fee para sa after-hours na reservations. Para sa exact rates, makipag-ugnayan sa CHK Admin Office.`,cat:"Venue"},{q:`Puwede bang mag-reserve ng venue para sa external na grupo?`,a:`Oo, puwede — pero kailangan ng endorsement/approval mula sa CHK AO at DEAN. May kaukulang fees at requirements. Makipag-coordinate sa CHK Admin Office.`,cat:"Venue"},{q:`Anong mga venue ang available sa CHK?`,a:`Ang CHK ay may 17 venues: Baseball Field, Baseball Garden, Dugout 1 & 2, Football Field, Small Gym/Court 4, Tennis Court, Track Oval, VTC Court, VTC Meeting Rooms 1 & 2, Ylanan Courts 1-3, VTC Weights Room, at Tennis Court Rooms 1 & 2. Pero para makita ang available time, tignan ang kanilang Venue Calendars`,cat:"Venue"},{q:`Paano mag-request ng sasakyan sa CHK?`,a:`I-fill out ang Vehicle/Trip Request Form sa CHK Admin Office o sa TRIP portal. Kailangan ng advance request — minimum 3 working days. Ang approval ay nakasalalay sa availability ng driver at sasakyan. Bisitahin ang link na ito: https://sites.google.com/up.edu.ph/chk360/reserve-a-vehicle`,cat:"Vehicle"},{q:`Available ba ang CHK vehicle para sa out-of-campus na lakad?`,a:`Oo, puwede — subject to availability at approval. Kailangan i-coordinate sa CHK Admin Office at i-coconfirm naman nila sa OASD (Office of Athletics and Sports Development) para sa mga varsity trips.`,cat:"Vehicle"},{q:`Paano mag-request ng supplies sa CHK?`,a:`Gamitin ang AIRA portal (Automated Inventory and Requisition Application) para mag-file ng supply request. I-access sa https://sites.google.com/up.edu.ph/chk360/a-i-r-a. Ang mga request ay subject to stock availability. Paalala, ang pag request kay AIRA ay para lamang sa mga staff at faculty ng CHK.`,cat:"Supply"},{q:`Saan makikita ang stock ng supplies sa CHK?`,a:`Makikita ang real-time stock levels sa AIRA system. Ang mga item na lalabas kay AIRA ay ang tanging mga available items sa CHK Admin Office.`,cat:"Supply"},{q:`Paano mag-report ng sirang facilities sa CHK?`,a:`Gamitin ang CHK RAP (Report-A-Problem) system o mag-file ng Work Order sa CHK Admin Office. I-access sa https://sites.google.com/up.edu.ph/chk360/forms. Ilagay ang detalye ng problema at lokasyon.`,cat:"Maintenance"},{q:`Gaano katagal bago ma-repair ang reported na problema?`,a:`Depende sa urgency at likas ng problema. Ang urgent repairs (safety hazards) ay pinriprioridad. Para sa update sa status ng iyong work order, makipag-ugnayan sa CHK Admin Office.`,cat:"Maintenance"},{q:`Paano mag-file ng leave para sa COS staff?`,a:`Ang COS staff ay gumagamit ng COS Leave System para sa wellness leave. I-access sa CHK portal: https://sites.google.com/up.edu.ph/chk360/forms. Kailangan ng advance notice at approval ng supervisor. Para sa detalye, makipag-ugnayan sa CHK Admin Office.`,cat:"Leave"},{q:`Ilang araw na wellness leave ang maaaring i-file ng COS staff?`,a:`Ang wellness leave para sa COS staff ay base sa kontrata at CHK policy. Para sa exact na bilang ng leave credits, makipag-ugnayan sa CHK Admin Office.`,cat:"Leave"},{q:`Saan makikita ang CHK Admin Office?`,a:`Ang CHK Administrative Office ay nasa Varsity Training Center, Magsaysay Avenue, University of the Philippines Diliman, Quezon City. Bukas Lunes hanggang Biyernes, 8:00 AM - 5:00 PM.`,cat:"General"},{q:`Ano ang portal ng CHK Admin Office?`,a:`Ang opisyal na portal ng CHK Admin Office ay: https://sites.google.com/up.edu.ph/chk360 — Dito makikita ang lahat ng systems at forms.`,cat:"General"},{q:`Sino ang Head Administrative Officer ng CHK?`,a:`Ang Head Administrative Officer ng CHK ay si James Lester P. Edrozo (Administrative Officer V). Para sa mga katanungan, makipag-ugnayan sa CHK Admin Office.`,cat:"General"},{q:`Sino-sino ang mga staff sa Administrative Office ng CHK?`,a:`Sa ngayon dalawa lamang silang office staff, si James Lester P. Edrozo (Administrative Officer V) at si Leoncio "Jhayr" S. Cadag Jr. (Liaision Officer).`,cat:"General"},{q:`Ano ang ONBOARD system ng CHK?`,a:`Ang CHK ONBOARD ay ang digital onboarding system para sa mga bagong CHK staff at faculty. Naglalaman ito ng mga modules, quizzes, at impormasyon tungkol sa CHK policies at procedures.`,cat:"Onboarding"},{q:`Ano ang PBMS ng CHK?`,a:`Ang PBMS (Performance-Based Monitoring System) ay ginagamit para sa pagsubaybay ng performance indicators ng CHK. Kasama dito ang quarterly targets at accomplishments. Kung ikaw ay faculty at staff ng CHK at nais malaman pa ang tungkol dito, makipag ugnayan sa Admin Office.`,cat:"PBMS"},{q:`Ano ang UPD Faculty Manual?`,a:`Ito ang opisyal na gabay ng UP Diliman para sa lahat ng miyembro ng faculty. Naglalaman ito ng mga patakaran, regulasyon, at proseduro na batay sa University Code, mga resolusyon ng Board of Regents, at iba pang opisyal na dokumento. Inilathala ito noong 2003 bilang revised version ng 1989 Faculty Manual.`,cat:"General"},{q:`Ano ang misyon ng University of the Philippines?`,a:`Ang UP ay nagbibigay ng advanced instruction sa literatura, pilosopiya, agham, at sining; nagbibigay ng propesyonal at teknikal na pagsasanay; at hinihikayat at isinasagawa ang pananaliksik at kontribusyon sa pagpapalaki at pagpapakalat ng kaalaman. Ito rin ay nagsisilbing instrumento ng pambansang pag-unlad.`,cat:"General"},{q:`Sino ang bumubuo sa Board of Regents ng UP?`,a:`Ang BOR ay binubuo ng: Chair ng CHED (ex officio Chair), Presidente ng UP (ex officio Vice-Chair), Chair ng Senate Committee on Education, Chair ng House Committee on Education, Presidente ng UPAA, Faculty Regent (1-year term), Student Regent (1-year term), at limang (5) miyembro na hinirang ng Presidente ng Pilipinas (tatlo ay kailangang alumni ng UP, 2-year term).`,cat:"General"},{q:`Ano ang University Council (UC) at sino ang mga miyembro nito?`,a:`Ang UC ay binubuo ng Chancellor, lahat ng Professors, Associate Professors, at Assistant Professors ng autonomous campus. Ang Chancellor ang nagsisilbing Chair at ang University Registrar ang Secretary. Ang Presidente ng UP ay ex officio na miyembro rin at nagpupuno kapag naroon. Ang quorum ay 75 miyembro.`,cat:"General"},{q:`Ano ang mga kapangyarihan ng University Council?`,a:`Ang UC, subject sa approval ng BOR, ay maaaring: mag-prescribe ng courses of study at rules of discipline; mag-fix ng requirements para sa admission at graduation; magrerekomenda ng mga tatanggap ng degrees; at mag-exercise ng disciplinary powers sa mga estudyante.`,cat:"General"},{q:`Ano ang mga regular na miyembro ng teaching staff?`,a:`Ang mga regular na miyembro ay: Professors, Associate Professors, Assistant Professors, at Instructors. Kasama rin ang Research/Extension Faculty na may appointment sa katumbas na rank.`,cat:"General"},{q:`Ano ang mga non-regular na miyembro ng teaching staff?`,a:`Ang mga non-regular ay: Lecturer, Senior Lecturer, Professorial Lecturer, Visiting Professor, Exchange Professor, Adjunct Professor, Affiliate Faculty, at Teaching Associate/Fellow.`,cat:"General"},{q:`Ilan ang required na teaching load ng isang full-time faculty member?`,a:`Ang normal na teaching load ay 12 units per semester. Hindi maaaring magturo ang isang faculty ng wala sa 6 units per semester. Maaaring bawasan ng Presidente o Chancellor ang load hanggang hindi bababa sa 3 units kung aktibo ang faculty sa research, creative work, community service, o iba pang authorized activities.`,cat:"General"},{q:`Ano ang Study Load Credit (SLC) at ano ang mga kondisyon nito?`,a:`Ang SLC ay partial de-loading mula sa regular 12-unit teaching load habang nag-aaral. Ang teaching load ay bawasan ng katumbas na bilang ng enrolled units, ngunit hindi hihigit sa 6 units. Para sa 3 units o mas kaunti: approval ng Dean, upon recommendation ng Department Chair. Para sa 4-6 units: kailangan ng approval ng Chancellor.`,cat:"General"},{q:`Ano ang Study Leave with pay at ano ang mga qualifications?`,a:`Para sa study leave with pay, kailangan ng faculty na: may proven teaching ability at commitment; may maayos na academic record; isang regular faculty occupying own item (hindi substitute); may rank na hindi hihigit sa Assistant Professor; may hindi bababa sa 1 taon ng serbisyo; may tenure o isinasaalang-alang para sa tenure; at hindi hihigit sa 40 taong gulang.`,cat:"General"},{q:`Gaano katagal ang study leave with pay?`,a:`Para sa Master's degree: hanggang 2.5 taon (30 buwan). Para sa Doctoral degree: hanggang 4 taon (48 buwan) pagkatapos ng Master's; o hanggang 5 taon (60 buwan) para sa straight Ph.D. program.`,cat:"General"},{q:`Kailan compulsory ang retirement sa UP?`,a:`Ang compulsory retirement age ay 65 taon. Ang BOR ay maaaring mag-extend ng tenure ng faculty hanggang 70 taon, pero hindi higit pa rito, kung kinakailangan ang kanilang serbisyo.`,cat:"General"},{q:`Ano ang Teacher's Leaves at sino ang karapat-dapat?`,a:`Ang Teacher's Leave ay para sa full- at part-time regular faculty na hindi gumagawa ng administrative functions. Binubuo ito ng vacation leave (1 buwan bawat academic year, bilang karagdagan sa Christmas vacation) at sick leave (hindi hihigit sa 15 araw sa isang academic year).`,cat:"General"},{q:`Ano ang Maternity Leave sa UP?`,a:`Ang mga babaeng government employee na may hindi bababa sa 2 taon ng serbisyo ay entitled sa 60 calendar days na maternity leave na may full pay. Sa ilalim ng UP guidelines, ang faculty ay may karapatang sa 6 buwan: 2 buwan bago at 4 buwan pagkatapos ng panganganak.`,cat:"General"},{q:`Ano ang Paternity Leave?`,a:`Ang married male employee ay may karapatang sa 7 araw na paternity leave na may bayad para sa unang 4 na panganganak ng kanyang asawa.`,cat:"General"},{q:`Ano ang Sabbatical at ano ang mga kondisyon nito?`,a:`Ang sabbatical ay pribilehiyo na nagpapalaya sa faculty mula sa regular na tungkulin para sa pag-aaral at pananaliksik. Maaaring i-grant ng hanggang 1 taon na may full salary: (1) hindi bababa sa 6 magkakasunod na taon ng serbisyo kasama 2 taon bilang Associate Professor; (2) hindi ibinibigay 2 taon bago mag-65; (3) kailangang mag-report pabalik agad pagkatapos.`,cat:"General"},{q:`Ano ang mga salary grades ng faculty ranks sa UP?`,a:`Ang mga salary grades ay: Instructor 1-7 (SG 14-17), Assistant Professor 1-7 (SG 18-21), Associate Professor 1-7 (SG 22-25), Professor 1-12 (SG 26-29).`,cat:"General"},{q:`Ano ang patakaran sa tenure ng Instructors?`,a:`Ang initial appointment bilang Instructor ay temporary, hindi hihigit sa 1 taon. Maaaring i-renew tuwing isang taon ngunit hindi lalampas sa 5 taon mula sa unang appointment. Pagkatapos ng 5 taon, awtomatikong magtatapos ang appointment maliban kung ma-promote sa Assistant Professor.`,cat:"General"},{q:`Ano ang mga minimum qualifications para sa tenure ng Assistant Professor?`,a:`Ang mga minimum qualifications ay: (1) hindi bababa sa Master's degree o equivalent; (2) satisfactory o mas mataas na teaching performance; at (3) sole o lead authorship ng isang refereed journal article o academic publication ng recognized academic book publisher.`,cat:"General"},{q:`Paano mag-resign ang isang faculty member?`,a:`Kailangang mag-notify ng hindi bababa sa 60 araw bago mag-effect ang resignation sa Chancellor sa pamamagitan ng Dean o Director. Hindi maaaring ma-accept ang resignation hanggang hindi na-secure ang successor o temporary substitute.`,cat:"General"},{q:`Ano ang mga PhilHealth benefits ng faculty?`,a:`Lahat ng government employees ay compulsorily covered ng PhilHealth. Ang benefit package ay sumasaklaw sa room at board (45 araw per year), gamot at medisina, X-ray, laboratory, professional fees, at operating room.`,cat:"General"},{q:`Ano ang mga retirement options sa GSIS?`,a:`Sa ilalim ng R.A. 8291, ang isang miyembro na may hindi bababa sa 15 taon ng serbisyo at 60 taong gulang ay eligible para sa retirement. Dalawang pangunahing opsyon: (a) 5-year lump sum kasama Basic Monthly Pension for life; o (b) Cash payment kasama Basic Monthly Pension simula agad sa retirement.`,cat:"General"},{q:`Ano ang Pag-IBIG benefits para sa faculty?`,a:`Ang Pag-IBIG Fund (HDMF) ay isang provident savings system. Ang mga miyembro ay eligible sa: (1) Expanded Housing Loan; (2) Multi-Purpose Loan (MPL); at (3) Provident Benefit pagkatapos ng 20 taon ng membership.`,cat:"General"},{q:`Ano ang Professorial Chair at sino ang karapat-dapat?`,a:`Ang professorial chair ay paraan ng pagkilala para sa achievers sa academe. Kailangan: regular faculty na may rank na Assistant Professor o mas mataas; may hindi bababa sa 5 taon ng serbisyo sa UP; at may outstanding performance sa teaching, intellectual productivity, at service.`,cat:"General"},{q:`Ano ang Professor Emeritus at ano ang mga pamantayan?`,a:`Ang Professor Emeritus ay maaaring i-appoint sa isang retired faculty na may rank na Professor na: (1) may hindi bababa sa 20 taon ng aktibo at tapat na serbisyo; (2) nakamit ang markadong distinction bilang productive scholar, artist, o scientist. Ito ay isang titulo para sa buhabuhay.`,cat:"General"},{q:`Ano ang sexual harassment ayon sa UP Faculty Manual?`,a:`Ang sexual harassment ay ang pag-demand, pag-request, o pag-require ng anumang sexual favor mula sa isa pang tao ng isang opisyal, faculty, empleyado, coach, o sinumang may awtoridad. Sumasaklaw ito sa mga work-related at academic/teaching environments.`,cat:"General"},{q:`Ano ang term of office ng Dean?`,a:`Ang term ng Dean ay 3 taon mula sa petsa ng appointment, nang hindi pinipigilan ang muling paghirang. Maaari silang maglingkod ng 2 terms sa kabuuan.`,cat:"General"},{q:`Ano ang term of office ng Department Chair?`,a:`Hindi hihigit sa 3 taon, maaaring i-renew para sa isa pang term ng hindi hihigit sa 3 taon (maximum na 6 taon). Hindi maaaring maglingkod ang isang chair ng mahigit sa 9 magkakasunod na taon.`,cat:"General"},{q:`Ano ang AIRA?`,a:`Ang AIRA (Admin Inventory Request & Automation) ay ang supply request system ng CHK. I-access dito: https://sites.google.com/up.edu.ph/chk360/a-i-r-a`,cat:"Supply"}];
+
+// ══════════════════════════════════════
+// SMART SHEET SEARCH
+// ══════════════════════════════════════
+function tokenize(str){
+  return str.toLowerCase()
+    .replace(/[?!.,;:()'"\\/]/g,'')
+    .replace(/[-_]/g,' ')
+    .split(/\s+/)
+    .filter(w=>w.length>1);
+}
+const STOPWORDS=new Set(['ang','ng','sa','na','at','ay','ba','ito','iyon','ano','sino',
+  'paano','saan','gaano','ilang','kailan','maaari','dapat','para','nang','mga','kung',
+  'hindi','lang','rin','din','mo','ko','ka','siya','niya','namin','natin','nila',
+  'the','is','are','in','of','to','a','an','and','or','for','on','with','how',
+  'what','who','where','when','which','that','this','be','was','were','been']);
+
+function scoreMatch(query,entry){
+  const qTokens=tokenize(query).filter(t=>!STOPWORDS.has(t));
+  const qFull=query.toLowerCase().replace(/[?!.,]/g,'').trim();
+  const eFull=entry.q.toLowerCase().replace(/[?!.,]/g,'').trim();
+  const eQTokens=tokenize(entry.q).filter(t=>!STOPWORDS.has(t));
+  const eAllTokens=tokenize(entry.q+' '+entry.a).filter(t=>!STOPWORDS.has(t));
+  let score=0;
+  if(eFull===qFull) return 1000;
+  if(eFull.includes(qFull) && qFull.length>=8) score+=50;
+  const qSet=new Set(qTokens);
+  const matchedInQ=eQTokens.filter(t=>qSet.has(t));
+  const unionSize=new Set([...qTokens,...eQTokens]).size;
+  if(unionSize>0){ const jaccard=matchedInQ.length/unionSize; score+=jaccard*60; }
+  for(const qt of qTokens){
+    if(eQTokens.includes(qt)) score+=10;
+    else if(entry.q.toLowerCase().includes(qt)) score+=6;
+    else if(eAllTokens.includes(qt)) score+=2;
+  }
+  const qInQ=qTokens.filter(t=>entry.q.toLowerCase().includes(t)).length;
+  if(qInQ>=2) score+=qInQ*4;
+  const missingFromQ=qTokens.filter(t=>!entry.q.toLowerCase().includes(t)).length;
+  score-=missingFromQ*3;
+  return Math.max(0,score);
+}
+function searchSheet(query){
+  if(!query||query.trim().length<2||!SHEET_KB.length) return null;
+  const scored=SHEET_KB.map(entry=>({entry,score:scoreMatch(query,entry)}));
+  scored.sort((a,b)=>b.score-a.score);
+  const best=scored[0];
+  const second=scored[1];
+  if(best.score>=15 && (!second||best.score>=second.score*1.4)) return best.entry;
+  return null;
+}
+function getSuggestions(category,excludeQ){
+  return SHEET_KB
+    .filter(e=>e.cat===category&&e.q!==excludeQ)
+    .slice(0,3)
+    .map(e=>e.q);
+}
 
 async function askGAS(userMessage) {
   setAIStatus('loading', 'Thinking...');
@@ -1099,24 +1165,93 @@ async function askGAS(userMessage) {
     if (!res.ok) throw new Error(`GAS HTTP ${res.status}`);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'GAS returned ok:false');
-    const reply = data?.content?.[0]?.text?.trim();
-    if (!reply) throw new Error('Empty reply from GAS');
-    gasHistory.push({ role: 'user', content: userMessage });
-    gasHistory.push({ role: 'assistant', content: reply });
-    if (gasHistory.length > 16) gasHistory = gasHistory.slice(-16);
+    const reply = data.reply || data.content?.[0]?.text?.trim();
+    const source = data.source || 'gas';
+    if (reply) {
+      gasHistory.push({ role: 'user', content: userMessage });
+      gasHistory.push({ role: 'assistant', content: reply });
+      if (gasHistory.length > 16) gasHistory = gasHistory.slice(-16);
+      setAIStatus('ready', 'AI Ready');
+      return { reply, source };
+    }
     setAIStatus('ready', 'AI Ready');
-    return reply;
+    return null;
   } catch(e) {
     setAIStatus('error', 'AI Error');
-    console.error('GAS/GROQ error:', e);
-    return null;
+    setTimeout(()=>setAIStatus('ready','AI Ready'), 3000);
+    throw e;
+  }
+}
+
+// ══════════════════════════════════════
+// CLAUDE AI — Direct fallback (Tier 5)
+// ══════════════════════════════════════
+async function askClaude(userMessage){
+  const sheetContext = SHEET_KB.map(e=>`Q: ${e.q}\nA: ${e.a}`).join('\n\n');
+  const systemPrompt = `Ikaw si CHiKito, ang friendly admin assistant ng CHK (College of Human Kinetics) sa UP Diliman.
+Sumasagot ka sa Taglish (mix ng Tagalog at English) — parang kabarkada lang ang dating, pero professional pa rin.
+Gamitin ang impormasyon sa ibaba mula sa CHK knowledge base para sagutin ang tanong.
+Kung wala sa knowledge base ang sagot, sabihin mo na limitado ang iyong alam at i-refer sa CHK Admin Office.
+Huwag mag-imbento ng mga numero, policy details, o links na wala sa knowledge base.
+
+CHK KNOWLEDGE BASE:
+${sheetContext}
+
+IMPORTANT: Maging helpful, concise, at friendly. Gumamit ng emojis nang konti. Sumasagot sa 1-3 sentences lang kung pwede.`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        system: systemPrompt,
+        messages: [
+          ...claudeHistory.slice(-6),
+          {role: 'user', content: userMessage}
+        ]
+      })
+    });
+    if(!res.ok) throw new Error('Claude API ' + res.status);
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || null;
+    if(reply){
+      claudeHistory.push({role:'user', content: userMessage});
+      claudeHistory.push({role:'assistant', content: reply});
+    }
+    return reply;
+  } catch(e) {
+    throw e;
+  }
+}
+
+// ══════════════════════════════════════
+// FIREBASE FIRESTORE LOGGING
+// ══════════════════════════════════════
+async function logToFirestore(question, answer) {
+  try {
+    const { db } = window._chkFirebase || {};
+    if (!db) return;
+    const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js');
+    await addDoc(collection(db, 'chikito_logs'), {
+      question: question,
+      answer: answer,
+      timestamp: serverTimestamp(),
+      source: 'gas'
+    });
+  } catch(e) {
+    console.warn('Firestore log failed:', e);
   }
 }
 
 function resolveStatic(t){
   t = t.toLowerCase().trim();
-  for(const[,e] of Object.entries(KB)){
-    if(e.triggers.some(tr => t.includes(tr))) return e;
+  for(const key in KB){
+    const entry = KB[key];
+    if(!entry.triggers || entry.triggers.length === 0) continue;
+    for(const tr of entry.triggers){
+      if(t.includes(tr)) return entry;
+    }
   }
   return null;
 }
@@ -1197,14 +1332,18 @@ refreshBtn.addEventListener('touchend',(e)=>{e.stopPropagation();},true);
 // Messaging
 function addMsg(role, html, chips, sourceTag){
   const d = document.createElement('div');
-  d.className = 'chk-msg ' + role + (sourceTag === 'gas' ? ' ai-powered' : '');
-  if(role === 'bot' && sourceTag === 'gas') { html = html.replace(/\n/g, '<br>'); }
+  d.className = 'chk-msg ' + role + (sourceTag === 'gas' ? ' ai-powered' : sourceTag === 'sheet' ? ' sheet-match' : sourceTag === 'claude' ? ' ai-powered' : '');
+  if(role === 'bot') { html = html.replace(/\n/g, '<br>'); }
   d.innerHTML = html;
   if(sourceTag) {
     const tag = document.createElement('div');
     tag.className = 'chk-source-tag ' + sourceTag;
-    tag.textContent = sourceTag === 'gas' ? '⚡ GROQ AI via GAS + Sheets QA' : '';
-    d.appendChild(tag);
+    tag.textContent = sourceTag === 'gemini' ? '✨ Gemini AI via GAS'
+      : sourceTag === 'sheets' ? '✅ Mula sa CHK Google Sheet'
+      : sourceTag === 'groq' ? '⚡ GROQ AI via GAS'
+      : sourceTag === 'gas'   ? '⚡ GROQ AI via GAS'
+      : sourceTag === 'claude'? '🤖 Claude AI (Direct)' : '';
+    if(tag.textContent) d.appendChild(tag);
   }
   msgBox.appendChild(d);
   requestAnimationFrame(()=>{msgBox.scrollTop=msgBox.scrollHeight;});
@@ -1234,21 +1373,130 @@ async function handleInput(text){
   inputEl.value='';
   showTyping();
   const lowerText = text.toLowerCase().trim();
+
+  // ── TIER 0: RESERVATION INTERCEPTOR ──────────────────────
+  const RES_KEYWORDS = [
+    'sched','schedule','reservation','reserved','naka-book','naka-sched',
+    'may naka','available','libre','occupied','sino naka','anong oras',
+    'meron ba','may reservation','booking','booked','naka reserve',
+    'check reservation','tingnan','ano ang naka','pwede ba','free ba',
+    'occupied ba','sino ang naka','may naka-book','may booking',
+    'may naka-sched','naka-reserve'
+  ];
+  const VENUE_KEYWORDS = [
+    'ylanan','vtc','baseball','football','track','tennis','dugout',
+    'small gym','court 4','gym court','court 1','court 2','court 3'
+  ];
+  const DATE_KEYWORDS = [
+    'ngayon','bukas','today','tomorrow','monday','tuesday','wednesday',
+    'thursday','friday','saturday','sunday','january','february','march',
+    'april','may','june','july','august','september','october','november',
+    'december','jan','feb','mar','apr','jun','jul','aug','sep','oct','nov','dec'
+  ];
+  const hasResKeyword   = RES_KEYWORDS.some(k  => lowerText.includes(k));
+  const hasVenueKeyword = VENUE_KEYWORDS.some(k => lowerText.includes(k));
+  const hasDateKeyword  = DATE_KEYWORDS.some(k  => lowerText.includes(k));
+  const hasDigitDate    = /\d/.test(lowerText);
+
+  if(hasResKeyword && (hasVenueKeyword || hasDateKeyword || hasDigitDate)){
+    try {
+      const gasResult = await askGAS(text);
+      removeTyping();
+      if(gasResult){
+        const { reply: gasReply, source: gasSource } = gasResult;
+        addMsg('bot', gasReply, ['Back to Menu','Reservations','Venue Calendars'], gasSource);
+        logToFirestore(text, gasReply);
+      } else {
+        addMsg('bot','Ay, walang nakuhang data, pre. Subukan mo ulit o pumunta sa Admin Office.', ['Back to Menu']);
+      }
+    } catch(err) {
+      removeTyping();
+      addMsg('bot','May error sa pagkuha ng reservation data, pre. 😅 Subukan mo ulit.',['Back to Menu']);
+    }
+    return;
+  }
+  // ──────────────────────────────────────────────────────────
+
+  // Tier 1: Chip map
   const ck = CHIP_MAP[text];
   if(ck && KB[ck]){
     setTimeout(()=>{removeTyping();addMsg('bot',KB[ck].response,KB[ck].chips);},400);
     return;
   }
+
+  // Tier 2: Static KB keyword match
   const staticMatch = resolveStatic(lowerText);
   if(staticMatch){
     setTimeout(()=>{removeTyping();addMsg('bot',staticMatch.response,staticMatch.chips);},450);
     return;
   }
+
+  // ── TIER 3 BYPASS: Policy / factual / UP-specific questions ──
+  const BYPASS_TO_GAS = [
+    'term of office','term ng dean','term ng chair','term ng department',
+    'ilang taon ang term','ano ang term','office ng dean',
+    'sino ang dean ng','sino ang chair ng','kailan nagtatapos ang term',
+    'code of ethics','ethics ng up','up faculty','faculty code',
+    'salary grade','salary ng','sahod','sweldo','pay grade',
+    'entitlement','benepisyo','benefits ng','allowance ng',
+    'fellowship','doctoral','ph.d','phd','post-doctoral','sandwich program',
+    'textbook','writing grant','research grant','creative work grant',
+    'incentive scheme','faculty administrator','attendance sa conference',
+    'foreign fellowship','studies fund',
+    'mag-enrol ang faculty','magturo sa ibang',
+    'patakaran sa pagtuturo','honoraria','absence without leave','awol',
+    'sick leave','vacation leave','maternity','paternity','terminal leave',
+    'study leave','sabbatical','service credit',
+    'promotion','tenure','reappointment','plantilla',
+    'procurement','bidding','liquidation','reimbursement','revolving fund',
+    'board of regents','university council','university code',
+    'teaching load','study load','load credit','kompulsoryong retirement',
+    'compulsory retirement','professor emeritus','professorial chair',
+    'sexual harassment policy',
+  ];
+  const isBypassQ = BYPASS_TO_GAS.some(k => lowerText.includes(k));
+
+  // Tier 3: Sheet KB smart search (skip for policy/factual — let GAS handle those)
+  const sheetHit = !isBypassQ ? searchSheet(text) : null;
+  if(sheetHit){
+    const suggestions = getSuggestions(sheetHit.cat, sheetHit.q);
+    setTimeout(()=>{
+      removeTyping();
+      const d = document.createElement('div');
+      d.className = 'chk-msg bot sheet-match';
+      d.innerHTML = sheetHit.a.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank">$1</a>');
+      if(suggestions.length){
+        const sl=document.createElement('div');
+        sl.style.cssText='margin-top:8px;display:flex;flex-direction:column;gap:4px;';
+        suggestions.forEach(sq=>{
+          const s=document.createElement('div');
+          s.style.cssText='font-size:11.5px;color:#c0d0c0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:5px 9px;cursor:pointer;';
+          s.textContent='💡 '+sq;
+          s.addEventListener('click',()=>handleInput(sq));
+          sl.appendChild(s);
+        });
+        d.appendChild(sl);
+      }
+      const tag=document.createElement('div');
+      tag.className='chk-source-tag';
+      tag.style.color='#4caf50';tag.style.opacity='.8';
+      tag.textContent='✅ Mula sa CHK Google Sheet';
+      d.appendChild(tag);
+      msgBox.appendChild(d);
+      requestAnimationFrame(()=>{msgBox.scrollTop=msgBox.scrollHeight;});
+      renderChips(['Back to Menu','Help']);
+    }, 400);
+    return;
+  }
+
+  // Tier 4: GAS AI
   try {
-    const gasReply = await askGAS(text);
+    const gasResult = await askGAS(text);
     removeTyping();
-    if(gasReply){
-      addMsg('bot', gasReply, ['Back to Menu','Reservations','Admin Forms'], 'gas');
+    if(gasResult){
+      const { reply: gasReply, source: gasSource } = gasResult;
+      addMsg('bot', gasReply, ['Back to Menu','Reservations','Admin Forms'], gasSource);
+      logToFirestore(text, gasReply);
     } else {
       addMsg('bot',
         'Hoy pre, hindi ko naintindihan yan. 😅<br><i style="opacity:.7;font-size:12px">Siguro out of scope yan. Try mo mag-tanong tungkol sa forms, reservations, o dashboards.</i>',
@@ -1256,12 +1504,29 @@ async function handleInput(text){
       );
     }
   } catch(err) {
-    removeTyping();
-    console.error(err);
-    addMsg('bot',
-      'May error, tol. 😅 Subukan mo ulit o pumunta na sa Admin Office directly.',
-      ['Back to Menu','Help']
-    );
+    // Tier 5: Claude API direct fallback
+    try {
+      removeTyping();
+      showTyping();
+      setAIStatus('loading','Claude AI...');
+      const claudeReply = await askClaude(text);
+      removeTyping();
+      if(claudeReply){
+        addMsg('bot', claudeReply, ['Back to Menu','Reservations','Admin Forms'], 'claude');
+      } else {
+        addMsg('bot',
+          'Hoy pre, hindi ko naintindihan yan. 😅<br><i style="opacity:.7;font-size:12px">Siguro out of scope yan. Try mo mag-tanong tungkol sa forms, reservations, o dashboards.</i>',
+          ['Reservations','Admin Forms','Venue Calendars','Help']
+        );
+      }
+    } catch(err2) {
+      removeTyping();
+      addMsg('bot',
+        'May error, tol. 😅 Subukan mo ulit o pumunta na sa Admin Office directly.',
+        ['Back to Menu','Help']
+      );
+    }
+    setAIStatus('ready','AI Ready');
   }
 }
 
@@ -1296,6 +1561,28 @@ chipsBox.addEventListener('touchend',(e)=>{e.stopPropagation();},true);
 inputEl.addEventListener('keydown',(e)=>{if(e.key==='Enter'){e.stopPropagation();handleInput(inputEl.value);}});
 
 })();
+</script>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+  import { getFirestore } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC3WGMksEBOIPfwBpe1I7AZzI_086QZZwg",
+    authDomain: "chikito-81ea3.firebaseapp.com",
+    projectId: "chikito-81ea3",
+    storageBucket: "chikito-81ea3.firebasestorage.app",
+    messagingSenderId: "629840143889",
+    appId: "1:629840143889:web:fbaef1ab9ba250a393b3b0",
+    measurementId: "G-5889ZDYJTT"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window._chkFirebase = { app, db };
+  console.log('✅ Firebase Firestore connected — CHiKito logging active');
 </script>
 
 </body>
